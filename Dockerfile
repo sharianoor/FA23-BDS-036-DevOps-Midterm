@@ -4,6 +4,9 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1
 
+ARG GIT_COMMIT=local
+ENV GIT_COMMIT=${GIT_COMMIT}
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
