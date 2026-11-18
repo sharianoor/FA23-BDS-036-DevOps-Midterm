@@ -192,45 +192,67 @@ PYTHON
         }
         success {
             script {
-                def pusher = env.GITHUB_PUSHER ?: 'sharianoor'
-                def recipient = pusher == 'sharianoor' ? 'sharianoor2@gmail.com' :
-                                pusher == 'qasimalik' ? 'qasimalik@gmail.com' :
-                                'sharianoor2@gmail.com'
+                def causes = currentBuild.getBuildCauses()
+                def description = causes.collect { it.shortDescription ?: "" }
+                    .find { it.contains("GitHub push by") } ?: ""
+                def pusher = description.replace("Started by GitHub push by ", "").trim()
 
-                emailext(
-                    to: recipient,
-                    from: 'sharianoor2@gmail.com',
-                    subject: "FA23-BDS-036 - SUCCESS - Build #${BUILD_NUMBER}",
-                    mimeType: 'text/plain',
-                    body: """Pipeline completed successfully.
+                def recipients = [
+                    "sharianoor": "sharianoor2@gmail.com",
+                    "malik-qasim": "qasimalik@gmail.com"
+                ]
+
+                def recipient = recipients[pusher]
+
+                if (recipient) {
+                    emailext(
+                        to: recipient,
+                        from: "sharianoor2@gmail.com",
+                        subject: "FA23-BDS-036 - SUCCESS - Build #${BUILD_NUMBER}",
+                        mimeType: "text/plain",
+                        body: """Pipeline completed successfully.
 
 Student ID: FA23-BDS-036
 Git Commit: ${GIT_SHA}
 Pusher: ${pusher}
 Build URL: ${BUILD_URL}
 """
-                )
+                    )
+                } else {
+                    echo "Email skipped: unrecognized or missing GitHub pusher: ${pusher}"
+                }
             }
         }
         failure {
             script {
-                def pusher = env.GITHUB_PUSHER ?: 'sharianoor'
-                def recipient = pusher == 'sharianoor' ? 'sharianoor2@gmail.com' :
-                                pusher == 'qasimalik' ? 'qasimalik@gmail.com' :
-                                'sharianoor2@gmail.com'
+                def causes = currentBuild.getBuildCauses()
+                def description = causes.collect { it.shortDescription ?: "" }
+                    .find { it.contains("GitHub push by") } ?: ""
+                def pusher = description.replace("Started by GitHub push by ", "").trim()
 
-                emailext(
-                    to: recipient,
-                    from: 'sharianoor2@gmail.com',
-                    subject: "FA23-BDS-036 - FAILURE - Build #${BUILD_NUMBER}",
-                    mimeType: 'text/plain',
-                    body: """Pipeline failed.
+                def recipients = [
+                    "sharianoor": "sharianoor2@gmail.com",
+                    "malik-qasim": "qasimalik@gmail.com"
+                ]
+
+                def recipient = recipients[pusher]
+
+                if (recipient) {
+                    emailext(
+                        to: recipient,
+                        from: "sharianoor2@gmail.com",
+                        subject: "FA23-BDS-036 - FAILURE - Build #${BUILD_NUMBER}",
+                        mimeType: "text/plain",
+                        body: """Pipeline failed.
 
 Student ID: FA23-BDS-036
 Pusher: ${pusher}
 Build URL: ${BUILD_URL}
 """
-                )
+                    )
+                } else {
+                    echo "Email skipped: unrecognized or missing GitHub pusher: ${pusher}"
+                }
             }
         }
     }
