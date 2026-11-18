@@ -188,17 +188,50 @@ PYTHON
 
     post {
         always {
-            sh '''
-                docker rm -f midterm-api-test 2>/dev/null || true
-            '''
+            sh "docker rm -f midterm-api-test 2>/dev/null || true"
         }
-
         success {
-            echo 'ML retraining, Docker Hub push and EC2 deployment succeeded.'
-        }
+            script {
+                def pusher = env.GITHUB_PUSHER ?: 'sharianoor'
+                def recipient = pusher == 'sharianoor' ? 'sharianoor2@gmail.com' :
+                                pusher == 'qasimalik' ? 'qasimalik@gmail.com' :
+                                'sharianoor2@gmail.com'
 
+                emailext(
+                    to: recipient,
+                    from: 'sharianoor2@gmail.com',
+                    subject: "FA23-BDS-036 - SUCCESS - Build #${BUILD_NUMBER}",
+                    mimeType: 'text/plain',
+                    body: """Pipeline completed successfully.
+
+Student ID: FA23-BDS-036
+Git Commit: ${GIT_SHA}
+Pusher: ${pusher}
+Build URL: ${BUILD_URL}
+"""
+                )
+            }
+        }
         failure {
-            echo 'Pipeline failed. Check the stage logs.'
+            script {
+                def pusher = env.GITHUB_PUSHER ?: 'sharianoor'
+                def recipient = pusher == 'sharianoor' ? 'sharianoor2@gmail.com' :
+                                pusher == 'qasimalik' ? 'qasimalik@gmail.com' :
+                                'sharianoor2@gmail.com'
+
+                emailext(
+                    to: recipient,
+                    from: 'sharianoor2@gmail.com',
+                    subject: "FA23-BDS-036 - FAILURE - Build #${BUILD_NUMBER}",
+                    mimeType: 'text/plain',
+                    body: """Pipeline failed.
+
+Student ID: FA23-BDS-036
+Pusher: ${pusher}
+Build URL: ${BUILD_URL}
+"""
+                )
+            }
         }
     }
 }
